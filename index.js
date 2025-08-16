@@ -45,6 +45,7 @@ const YFP_NARATIVE_COMPILOR=process.env.YFP_NARATIVE_COMPILOR;
 
 
 
+app.get('/healthz', (req, res) => res.status(200).send('ok'));
 
 console.log(process.env.OPENAI_API_KEY);
 
@@ -52,89 +53,165 @@ app.use(cors());
 app.use(express.json());
 
 
-app.post('/chatq1', async (req, res) => {
-  console.log("test /chat");
-  const userMessage = req.body.message;
-  const threadid= req.body.user.threadId;
-  // const questionid= 1;
+// app.post('/chatq1', async (req, res) => {
+//   console.log("test /chat");
+//   const userMessage = req.body.message;
+//   const threadid= req.body.user.threadId;
+//   // const questionid= 1;
   
-// console.log(threadid);
-// console.log(questionid);
+// // console.log(threadid);
+// // console.log(questionid);
+//   if (!userMessage) {
+//     return res.status(400).json({ reply: "Message is required." });
+//   }
+
+//   if(!threadid){
+//     return res.status(400).json({ reply: "threadid is required" });
+//   //make a method to update thread id if no threadid is found?
+//   }
+
+//   // if(!questionid){
+//   //   return res.status(400).json({ reply: "questionid is required" });
+//   // }
+
+//   try {
+
+// await openai.beta.threads.messages.create(threadid, {
+//   role: "user",
+//   content: `Answer: ${userMessage}`,
+
+
+// });
+
+// const run = await openai.beta.threads.runs.create(threadid,{
+//   assistant_id: YFP_NARATIVE_Q1,
+// }); 
+
+// let runstatus; // run status for response 
+// let attempts = 0;
+// const maxAttempts = 60;// max attempts or timeout seconds
+// do{
+//   runstatus= await openai.beta.threads.runs.retrieve(threadid,run.id);
+//    console.log(runstatus);
+//   if(runstatus.status === "completed") break;
+//   await new Promise((resolve) => setTimeout(resolve,1000));
+//   attempts++;
+// } while ((runstatus.status === "queued" ||
+//    runstatus.status === "in_progress") && 
+//    attempts < maxAttempts);
+
+
+// //fetching response
+
+// const messages = await openai.beta.threads.messages.list(threadid);
+// const lastMessage = messages.data.find((msg)=> msg.role === "assistant");
+
+// console.log("messages");
+// console.log(messages);
+    
+// console.log("last message");    
+// console.log(lastMessage);
+
+
+// console.log(lastMessage?.content[0]?.text?.value);    
+    
+// res.json({
+//   reply: lastMessage?.content[0]?.text?.value || "No reply try again",
+ 
+// });
+
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ reply: "Failed to get response from OpenAI." });
+//   }
+
+
+
+
+
+
+
+  
+
+
+
+// });
+
+
+app.post('/chatq1', async (req, res) => {
+  console.log("test /chatq1");
+
+  const userMessage = req.body.message;
+  const threadid = req.body.user.threadId;
+
   if (!userMessage) {
     return res.status(400).json({ reply: "Message is required." });
   }
 
-  if(!threadid){
+  if (!threadid) {
     return res.status(400).json({ reply: "threadid is required" });
-  //make a method to update thread id if no threadid is found?
   }
 
-  // if(!questionid){
-  //   return res.status(400).json({ reply: "questionid is required" });
-  // }
-
   try {
+    // Send user message
+    await openai.beta.threads.messages.create(threadid, {
+      role: "user",
+      content: `Answer: ${userMessage}`,
+    });
 
-await openai.beta.threads.messages.create(threadid, {
-  role: "user",
-  content: `Answer: ${userMessage}`,
+    // Run the assistant
+    const run = await openai.beta.threads.runs.create(threadid, {
+      assistant_id: YFP_NARATIVE_Q1,
+    });
 
+    // Poll until run completes
+    let runstatus;
+    let attempts = 0;
+    const maxAttempts = 60;
+    do {
+      runstatus = await openai.beta.threads.runs.retrieve(threadid, run.id);
+      if (runstatus.status === "completed") break;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      attempts++;
+    } while (
+      (runstatus.status === "queued" || runstatus.status === "in_progress") &&
+      attempts < maxAttempts
+    );
 
-});
+    // Get the last assistant message
+    const messages = await openai.beta.threads.messages.list(threadid);
+    const lastMessage = messages.data.find((msg) => msg.role === "assistant");
+    console.log("assistant  content:", lastMessage.object.json);
 
-const run = await openai.beta.threads.runs.create(threadid,{
-  assistant_id: YFP_NARATIVE_Q1,
-});
+    console.log("assistant raw content:", lastMessage?.content.json);
 
-let runstatus; // run status for response 
-let attempts = 0;
-const maxAttempts = 60;// max attempts or timeout seconds
-do{
-  runstatus= await openai.beta.threads.runs.retrieve(threadid,run.id);
-   console.log(runstatus);
-  if(runstatus.status === "completed") break;
-  await new Promise((resolve) => setTimeout(resolve,1000));
-  attempts++;
-} while ((runstatus.status === "queued" ||
-   runstatus.status === "in_progress") && 
-   attempts < maxAttempts);
+    let jsonReply = null;
+    let textReply = null;
 
+    if (lastMessage?.content?.[0]?.type === "output_json") {
+      jsonReply = lastMessage.content[0].json;
+    } else if (lastMessage?.content?.[0]?.type === "text") {
+      try {
+        jsonReply = JSON.parse(lastMessage.content[0].text.value);
+      } catch {
+        textReply = lastMessage.content[0].text.value;
+      }
+    }
 
-//fetching response
+    console.log(jsonReply,"json reply");
 
-const messages = await openai.beta.threads.messages.list(threadid);
-const lastMessage = messages.data.find((msg)=> msg.role === "assistant");
+    console.log(textReply," text reply")
 
-console.log("messages");
-console.log(messages);
-    
-console.log("last message");    
-console.log(lastMessage);
-
-
-console.log(lastMessage?.content[0]?.text?.value);    
-    
-res.json({
-  reply: lastMessage?.content[0]?.text?.value || "No reply try again",
- 
-});
-
+    res.json({
+      reply: jsonReply || textReply || "No reply, try again",
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ reply: "Failed to get response from OpenAI." });
   }
-
-
-
-
-
-
-
-  
-
-
-
 });
+
+
 
 
 app.post('/chatq3', async (req, res) => {
