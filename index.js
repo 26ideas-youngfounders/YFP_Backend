@@ -47,6 +47,12 @@ const MarketresearchAssistantThread=process.env.MarketresearchAssistantThread;
 const SalesAssistantThread=process.env.SalesAssistantThread;
 const ProductAssistantThread=process.env.ProductAssistantThread;
 const LegalAssistantThread=process.env.LegalAssistantThread;
+const RetailVerticalThread=process.env.RetailVerticalThread;
+const HealthcareVeritcalThread=process.env.HealthcareVeritcalThread;
+const FoodVerticalThread=process.env.FoodVerticalThread;
+const TechnologyVerticalThread=process.env.TechnologyVerticalThread;
+const EducationVerticalThread=process.env.EducationVerticalThread;
+
 
 
 
@@ -2347,6 +2353,392 @@ res.json({
 });
 
 
+
+
+app.post('/retailvertical', async (req, res) => {
+  console.log("test /chat");
+  const userMessage = req.body.message;
+  const threadid= req.body.user.threadId;
+  // const questionid= 1;
+  
+console.log(threadid);
+// console.log(questionid);
+  if (!userMessage) {
+    return res.status(400).json({ reply: "Message is required." });
+  }
+
+  if(!threadid){
+    return res.status(400).json({ reply: "threadid is required" });
+  //make a method to update thread id if no threadid is found?
+  }
+
+  // if(!questionid){
+  //   return res.status(400).json({ reply: "questionid is required" });
+  // }
+
+  try {
+
+await openai.beta.threads.messages.create(threadid, {
+  role: "user",
+  content: `Answer: ${userMessage}`,
+
+
+});
+
+const run = await openai.beta.threads.runs.create(threadid,{
+  assistant_id: LegalAssistantThread,
+});
+
+let runstatus; // run status for response 
+let attempts = 0;
+const maxAttempts = 60;// max attempts or timeout seconds
+do{
+  runstatus= await openai.beta.threads.runs.retrieve(threadid,run.id);
+   console.log(runstatus);
+  if(runstatus.status === "completed") break;
+  await new Promise((resolve) => setTimeout(resolve,1000));
+  attempts++;
+} while ((runstatus.status === "queued" ||
+   runstatus.status === "in_progress") && 
+   attempts < maxAttempts);
+
+
+//fetching response
+
+const messages = await openai.beta.threads.messages.list(threadid);
+const lastMessage = messages.data.find((msg)=> msg.role === "assistant");
+
+res.json({
+  reply: lastMessage?.content[0]?.text?.value || "No reply try again",
+ 
+});
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ reply: "Failed to get response from OpenAI." });
+  }
+
+
+
+
+
+
+
+  
+
+
+
+});
+
+
+
+app.post('/healthcarevertical', async (req, res) => {
+  console.log("test /chat");
+  const userMessage = req.body.message;
+  const threadid= req.body.user.threadId;
+  // const questionid= 1;
+  
+console.log(threadid);
+// console.log(questionid);
+  if (!userMessage) {
+    return res.status(400).json({ reply: "Message is required." });
+  }
+
+  if(!threadid){
+    return res.status(400).json({ reply: "threadid is required" });
+  //make a method to update thread id if no threadid is found?
+  }
+
+  // if(!questionid){
+  //   return res.status(400).json({ reply: "questionid is required" });
+  // }
+
+  try {
+
+await openai.beta.threads.messages.create(threadid, {
+  role: "user",
+  content: `Answer: ${userMessage}`,
+
+
+});
+
+const run = await openai.beta.threads.runs.create(threadid,{
+  assistant_id: LegalAssistantThread,
+});
+
+let runstatus; // run status for response 
+let attempts = 0;
+const maxAttempts = 60;// max attempts or timeout seconds
+do{
+  runstatus= await openai.beta.threads.runs.retrieve(threadid,run.id);
+   console.log(runstatus);
+  if(runstatus.status === "completed") break;
+  await new Promise((resolve) => setTimeout(resolve,1000));
+  attempts++;
+} while ((runstatus.status === "queued" ||
+   runstatus.status === "in_progress") && 
+   attempts < maxAttempts);
+
+
+//fetching response
+
+const messages = await openai.beta.threads.messages.list(threadid);
+const lastMessage = messages.data.find((msg)=> msg.role === "assistant");
+
+res.json({
+  reply: lastMessage?.content[0]?.text?.value || "No reply try again",
+ 
+});
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ reply: "Failed to get response from OpenAI." });
+  }
+
+
+
+
+
+
+
+  
+
+
+
+});
+
+
+
+
+
+app.post('/foodvertical', async (req, res) => {
+  console.log("test /chat");
+  const userMessage = req.body.message;
+  const threadid= req.body.user.threadId;
+  // const questionid= 1;
+  
+console.log(threadid);
+// console.log(questionid);
+  if (!userMessage) {
+    return res.status(400).json({ reply: "Message is required." });
+  }
+
+  if(!threadid){
+    return res.status(400).json({ reply: "threadid is required" });
+  //make a method to update thread id if no threadid is found?
+  }
+
+  // if(!questionid){
+  //   return res.status(400).json({ reply: "questionid is required" });
+  // }
+
+  try {
+
+await openai.beta.threads.messages.create(threadid, {
+  role: "user",
+  content: `Answer: ${userMessage}`,
+
+
+});
+
+const run = await openai.beta.threads.runs.create(threadid,{
+  assistant_id: LegalAssistantThread,
+});
+
+let runstatus; // run status for response 
+let attempts = 0;
+const maxAttempts = 60;// max attempts or timeout seconds
+do{
+  runstatus= await openai.beta.threads.runs.retrieve(threadid,run.id);
+   console.log(runstatus);
+  if(runstatus.status === "completed") break;
+  await new Promise((resolve) => setTimeout(resolve,1000));
+  attempts++;
+} while ((runstatus.status === "queued" ||
+   runstatus.status === "in_progress") && 
+   attempts < maxAttempts);
+
+
+//fetching response
+
+const messages = await openai.beta.threads.messages.list(threadid);
+const lastMessage = messages.data.find((msg)=> msg.role === "assistant");
+
+res.json({
+  reply: lastMessage?.content[0]?.text?.value || "No reply try again",
+ 
+});
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ reply: "Failed to get response from OpenAI." });
+  }
+
+
+
+
+
+
+
+  
+
+
+
+});
+
+
+
+
+app.post('/technologyvertical', async (req, res) => {
+  console.log("test /chat");
+  const userMessage = req.body.message;
+  const threadid= req.body.user.threadId;
+  // const questionid= 1;
+  
+console.log(threadid);
+// console.log(questionid);
+  if (!userMessage) {
+    return res.status(400).json({ reply: "Message is required." });
+  }
+
+  if(!threadid){
+    return res.status(400).json({ reply: "threadid is required" });
+  //make a method to update thread id if no threadid is found?
+  }
+
+  // if(!questionid){
+  //   return res.status(400).json({ reply: "questionid is required" });
+  // }
+
+  try {
+
+await openai.beta.threads.messages.create(threadid, {
+  role: "user",
+  content: `Answer: ${userMessage}`,
+
+
+});
+
+const run = await openai.beta.threads.runs.create(threadid,{
+  assistant_id: LegalAssistantThread,
+});
+
+let runstatus; // run status for response 
+let attempts = 0;
+const maxAttempts = 60;// max attempts or timeout seconds
+do{
+  runstatus= await openai.beta.threads.runs.retrieve(threadid,run.id);
+   console.log(runstatus);
+  if(runstatus.status === "completed") break;
+  await new Promise((resolve) => setTimeout(resolve,1000));
+  attempts++;
+} while ((runstatus.status === "queued" ||
+   runstatus.status === "in_progress") && 
+   attempts < maxAttempts);
+
+
+//fetching response
+
+const messages = await openai.beta.threads.messages.list(threadid);
+const lastMessage = messages.data.find((msg)=> msg.role === "assistant");
+
+res.json({
+  reply: lastMessage?.content[0]?.text?.value || "No reply try again",
+ 
+});
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ reply: "Failed to get response from OpenAI." });
+  }
+
+
+
+
+
+
+
+  
+
+
+
+});
+
+
+app.post('/educationvertical', async (req, res) => {
+  console.log("test /chat");
+  const userMessage = req.body.message;
+  const threadid= req.body.user.threadId;
+  // const questionid= 1;
+  
+console.log(threadid);
+// console.log(questionid);
+  if (!userMessage) {
+    return res.status(400).json({ reply: "Message is required." });
+  }
+
+  if(!threadid){
+    return res.status(400).json({ reply: "threadid is required" });
+  //make a method to update thread id if no threadid is found?
+  }
+
+  // if(!questionid){
+  //   return res.status(400).json({ reply: "questionid is required" });
+  // }
+
+  try {
+
+await openai.beta.threads.messages.create(threadid, {
+  role: "user",
+  content: `Answer: ${userMessage}`,
+
+
+});
+
+const run = await openai.beta.threads.runs.create(threadid,{
+  assistant_id: LegalAssistantThread,
+});
+
+let runstatus; // run status for response 
+let attempts = 0;
+const maxAttempts = 60;// max attempts or timeout seconds
+do{
+  runstatus= await openai.beta.threads.runs.retrieve(threadid,run.id);
+   console.log(runstatus);
+  if(runstatus.status === "completed") break;
+  await new Promise((resolve) => setTimeout(resolve,1000));
+  attempts++;
+} while ((runstatus.status === "queued" ||
+   runstatus.status === "in_progress") && 
+   attempts < maxAttempts);
+
+
+//fetching response
+
+const messages = await openai.beta.threads.messages.list(threadid);
+const lastMessage = messages.data.find((msg)=> msg.role === "assistant");
+
+res.json({
+  reply: lastMessage?.content[0]?.text?.value || "No reply try again",
+ 
+});
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ reply: "Failed to get response from OpenAI." });
+  }
+
+
+
+
+
+
+
+  
+
+
+
+});
 
 
 
