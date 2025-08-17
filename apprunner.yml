@@ -1,4 +1,0 @@
-version: 1.0
-runtime: docker
-dockerfile_path: ./Dockerfile
-port: 3000
