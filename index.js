@@ -2386,7 +2386,7 @@ await openai.beta.threads.messages.create(threadid, {
 });
 
 const run = await openai.beta.threads.runs.create(threadid,{
-  assistant_id: LegalAssistantThread,
+  assistant_id: RetailVerticalThread,
 });
 
 let runstatus; // run status for response 
@@ -2463,7 +2463,7 @@ await openai.beta.threads.messages.create(threadid, {
 });
 
 const run = await openai.beta.threads.runs.create(threadid,{
-  assistant_id: LegalAssistantThread,
+  assistant_id: HealthcareVeritcalThread,
 });
 
 let runstatus; // run status for response 
@@ -2542,7 +2542,7 @@ await openai.beta.threads.messages.create(threadid, {
 });
 
 const run = await openai.beta.threads.runs.create(threadid,{
-  assistant_id: LegalAssistantThread,
+  assistant_id: FoodVerticalThread,
 });
 
 let runstatus; // run status for response 
@@ -2620,7 +2620,7 @@ await openai.beta.threads.messages.create(threadid, {
 });
 
 const run = await openai.beta.threads.runs.create(threadid,{
-  assistant_id: LegalAssistantThread,
+  assistant_id: TechnologyVerticalThread,
 });
 
 let runstatus; // run status for response 
@@ -2696,7 +2696,7 @@ await openai.beta.threads.messages.create(threadid, {
 });
 
 const run = await openai.beta.threads.runs.create(threadid,{
-  assistant_id: LegalAssistantThread,
+  assistant_id: EducationVerticalThread,
 });
 
 let runstatus; // run status for response 
