@@ -15,6 +15,27 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
+import { initEnvFromSSM } from "./ssm-env.mjs";
+
+// 🔽 run the bootstrap FIRST
+await initEnvFromSSM({
+  prefix: process.env.SSM_PREFIX || "/yfp-backend",
+  // optional: restrict to only the names you care about; omit to load all under the prefix
+  keys: [
+    "OPENAI_API_KEY",
+    "LegalAssistantThread","MarketingAssistantThread","MarketresearchAssistantThread",
+    "PUPPETEER_CACHE_DIR","ProductAssistantThread","SalesAssistantThread","YFP_NARATIVE_COMPILER",
+    "YFP_NARATIVE_Q1","YFP_NARATIVE_Q3","YFP_NARATIVE_Q4","YFP_NARATIVE_Q5","YFP_NARATIVE_Q6",
+    "YFP_NARATIVE_Q7","YFP_NARATIVE_Q8","YFP_NARATIVE_Q9","YFP_NARATIVE_Q10","YFP_NARATIVE_Q11",
+    "YFP_NARATIVE_Q12","YFP_NARATIVE_Q13","YFP_NARATIVE_Q14","YFP_NARATIVE_Q15","YFP_NARATIVE_Q16",
+    "YFP_NARATIVE_Q17","YFP_NARATIVE_Q18","YFP_NARATIVE_Q19","YFP_NARATIVE_Q20","YFP_NARATIVE_Q21",
+    "YFP_NARATIVE_Q22","YFP_NARATIVE_Q23","YFP_NARATIVE_Q24","YFP_NARATIVE_Q25",
+    "RetailVerticalThread","HealthcareVeritcalThread","FoodVerticalThread",
+    "TechnologyVerticalThread","EducationVerticalThread"
+  ],
+  seedMissingFromEnv: true, // writes any present envs to SSM if missing (no overwrite)
+});
+
 const app = express();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const YFP_NARATIVE_Q1= process.env.YFP_NARATIVE_Q1;
@@ -53,6 +74,11 @@ const FoodVerticalThread=process.env.FoodVerticalThread;
 const TechnologyVerticalThread=process.env.TechnologyVerticalThread;
 const EducationVerticalThread=process.env.EducationVerticalThread;
 
+const REQUIRED = ['OPENAI_API_KEY','YFP_NARATIVE_Q1', /* …add the rest… */];
+const missing = REQUIRED.filter(k => !process.env[k]);
+if (missing.length) {
+  console.warn('Missing env after SSM bootstrap:', missing);
+}
 
 
 

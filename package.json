@@ -11,6 +11,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-ssm": "^3.864.0",
     "cors": "^2.8.5",
     "docker": "^1.0.0",
     "dotenv": "^17.2.0",
