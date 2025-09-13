@@ -3059,11 +3059,13 @@ export async function createPdfFromSections(sections) {
   //   args: ['--no-sandbox', '--disable-setuid-sandbox']
   // });
 
-  const browser = await puppeteer.launch({
+ const browser = await puppeteer.launch({
   headless: true,
-   args: ['--no-sandbox', '--disable-setuid-sandbox'],
-   userDataDir: process.env.PUPPETEER_CACHE_DIR || '/tmp/puppeteer'
- });
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH, // << use your env path
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  userDataDir: process.env.PUPPETEER_CACHE_DIR || '/tmp/puppeteer'
+});
+
 
 
   const page = await browser.newPage();

@@ -1,25 +1,23 @@
-# #!/usr/bin/env bash
-
-# # Install Chromium for Puppeteer
-# echo "Installing Chromium for Puppeteer"
-# npx puppeteer browsers install chrome
-
-# # Install all project dependencies
-# echo "Running npm install"
-# npm install
-
-
 #!/usr/bin/env bash
-# exit on errorset -o errexit
+set -euo pipefail
 
-npm install
-# npm run build # uncomment if required
+echo "=== Build start ==="
+node -v
+npm -v
 
-# Store/pull Puppeteer cache with build cache
-if [[ ! -d $PUPPETEER_CACHE_DIR ]]; then 
-  echo "...Copying Puppeteer Cache from Build Cache" 
-  cp -R $XDG_CACHE_HOME/puppeteer/ $PUPPETEER_CACHE_DIR
-else 
-  echo "...Storing Puppeteer Cache in Build Cache" 
-  cp -R $PUPPETEER_CACHE_DIR $XDG_CACHE_HOME
+echo "=== Installing production dependencies ==="
+if [ -f package-lock.json ]; then
+  npm ci --omit=dev
+else
+  npm install --omit=dev
 fi
+
+echo "=== Installing Chrome for Puppeteer into /tmp/puppeteer ==="
+mkdir -p /tmp/puppeteer
+npx puppeteer browsers install chrome --path=/tmp/puppeteer
+
+echo "=== List installed browsers under /tmp/puppeteer ==="
+ls -la /tmp/puppeteer || true
+find /tmp/puppeteer -maxdepth 5 -type f -name "chrome" -print || true
+
+echo "=== Build done ==="
