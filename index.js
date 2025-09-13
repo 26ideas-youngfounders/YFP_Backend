@@ -8,6 +8,30 @@ import puppeteer from 'puppeteer';
 // import { parse } from 'node-html-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+ import { initEnvFromSSM } from "./ssm-env.mjs";
+
+
+
+ function resolveChrome() {
+  const fs = require('fs');
+  const path = require('path');
+  const base = process.env.PUPPETEER_CACHE_DIR || '/opt/render/project/puppeteer';
+  const chromeBase = path.join(base, 'chrome');
+
+  try {
+    if (!fs.existsSync(chromeBase)) return null;
+    for (const d of fs.readdirSync(chromeBase, { withFileTypes: true })) {
+      if (d.isDirectory() && d.name.startsWith('linux-')) {
+        const p1 = path.join(chromeBase, d.name, 'chrome-linux64', 'chrome');
+        const p2 = path.join(chromeBase, d.name, 'chrome-linux', 'chrome');
+        if (fs.existsSync(p1)) return p1;
+        if (fs.existsSync(p2)) return p2;
+      }
+    }
+  } catch {}
+  return null;
+}
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,7 +62,7 @@ dotenv.config();
 
 
 
- import { initEnvFromSSM } from "./ssm-env.mjs";
+//  import { initEnvFromSSM } from "./ssm-env.mjs";
  
  // Only attempt SSM if you explicitly enable it.
  if (process.env.USE_AWS_SSM === "true") {
@@ -3059,11 +3083,13 @@ export async function createPdfFromSections(sections) {
   //   args: ['--no-sandbox', '--disable-setuid-sandbox']
   // });
 
- const browser = await puppeteer.launch({
+const executablePath = resolveChrome();
+console.log('Resolved Chrome path:', executablePath || '(none)');
+
+const browser = await puppeteer.launch({
   headless: true,
-  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH, // << use your env path
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  userDataDir: process.env.PUPPETEER_CACHE_DIR || '/tmp/puppeteer'
+  executablePath: executablePath || undefined,
+  args: ['--no-sandbox', '--disable-setuid-sandbox']
 });
 
 

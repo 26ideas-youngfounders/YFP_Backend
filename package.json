@@ -6,9 +6,7 @@
   "scripts": {
     "start": "node index.js"
   },
-  "engines": {
-    "node": ">=20.0.0"
-  },
+  "engines": { "node": ">=20.0.0" },
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.864.0",
     "cors": "^2.8.5",
