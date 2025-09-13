@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 // import PDFMerger from 'pdf-merger-js';
 import fs from 'fs';
 import puppeteer from 'puppeteer';
+
 // import { parse } from 'node-html-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -3083,15 +3084,28 @@ export async function createPdfFromSections(sections) {
   //   args: ['--no-sandbox', '--disable-setuid-sandbox']
   // });
 
-const executablePath = resolveChrome();
-console.log('Resolved Chrome path:', executablePath || '(none)');
+// const executablePath = resolveChrome();
+// console.log('Resolved Chrome path:', executablePath || '(none)');
+
+// const browser = await puppeteer.launch({
+//   headless: true,
+//   executablePath: executablePath || undefined,
+//   args: ['--no-sandbox', '--disable-setuid-sandbox']
+// });
+
+
+// Optional: log what Puppeteer thinks is installed
+try {
+  // puppeteer.executablePath() returns the path to the cached Chrome that Puppeteer knows about
+  console.log('Puppeteer resolved Chrome at:', puppeteer.executablePath?.() || '(not available in this version)');
+} catch (e) {
+  console.log('Could not read puppeteer.executablePath():', e?.message || e);
+}
 
 const browser = await puppeteer.launch({
   headless: true,
-  executablePath: executablePath || undefined,
   args: ['--no-sandbox', '--disable-setuid-sandbox']
 });
-
 
 
   const page = await browser.newPage();

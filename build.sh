@@ -12,30 +12,16 @@ else
   npm install --omit=dev
 fi
 
-# Use persistent Puppeteer cache on Render
-export PUPPETEER_CACHE_DIR="${PUPPETEER_CACHE_DIR:-/opt/render/project/puppeteer}"
-export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/opt/render/.cache}"
-
-mkdir -p "$PUPPETEER_CACHE_DIR" "$XDG_CACHE_HOME"
-
-echo "=== Install Chrome if missing in build cache ==="
-if ! find "$XDG_CACHE_HOME/puppeteer" -type f -name chrome -print -quit | grep -q .; then
-  echo "...No Chrome in build cache; installing"
-  npx puppeteer browsers install chrome
+# Sync Puppeteer cache with Render's persistent project dir
+echo "=== Handling Puppeteer cache ==="
+if [[ ! -d "${PUPPETEER_CACHE_DIR:-}" ]]; then
+  echo "...Copying Puppeteer cache FROM build cache -> TO project dir"
+  # Puppeteer’s default install cache lives under $XDG_CACHE_HOME/puppeteer
+  cp -R "${XDG_CACHE_HOME:-$HOME/.cache}/puppeteer" "/opt/render/project/puppeteer" || true
 else
-  echo "...Chrome found in build cache"
+  echo "...Storing Puppeteer cache FROM project dir -> TO build cache"
+  mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}"
+  cp -R "/opt/render/project/puppeteer" "${XDG_CACHE_HOME:-$HOME/.cache}/" || true
 fi
-
-echo "=== Sync cache <-> persistent folder ==="
-if ! find "$PUPPETEER_CACHE_DIR" -type f -name chrome -print -quit | grep -q .; then
-  echo "...Copying Puppeteer cache FROM build cache TO persistent"
-  rsync -a "$XDG_CACHE_HOME/puppeteer/" "$PUPPETEER_CACHE_DIR/" || true
-else
-  echo "...Persisted cache exists; refreshing build cache FROM persistent"
-  rsync -a "$PUPPETEER_CACHE_DIR/" "$XDG_CACHE_HOME/puppeteer/" || true
-fi
-
-echo "=== Chrome candidates under $PUPPETEER_CACHE_DIR ==="
-find "$PUPPETEER_CACHE_DIR" -maxdepth 5 -type f -name "chrome" -print || true
 
 echo "=== Build done ==="
