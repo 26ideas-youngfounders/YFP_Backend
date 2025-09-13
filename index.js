@@ -2,10 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import { OpenAI } from 'openai';
 import dotenv from 'dotenv';
-import PDFMerger from 'pdf-merger-js';
+// import PDFMerger from 'pdf-merger-js';
 import fs from 'fs';
 import puppeteer from 'puppeteer';
-import { parse } from 'node-html-parser';
+// import { parse } from 'node-html-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -15,26 +15,45 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-import { initEnvFromSSM } from "./ssm-env.mjs";
+// import { initEnvFromSSM } from "./ssm-env.mjs";
 
-// 🔽 run the bootstrap FIRST
-await initEnvFromSSM({
-  prefix: process.env.SSM_PREFIX || "/yfp-backend",
-  // optional: restrict to only the names you care about; omit to load all under the prefix
-  keys: [
-    "OPENAI_API_KEY",
-    "LegalAssistantThread","MarketingAssistantThread","MarketresearchAssistantThread",
-    "PUPPETEER_CACHE_DIR","ProductAssistantThread","SalesAssistantThread","YFP_NARATIVE_COMPILER",
-    "YFP_NARATIVE_Q1","YFP_NARATIVE_Q3","YFP_NARATIVE_Q4","YFP_NARATIVE_Q5","YFP_NARATIVE_Q6",
-    "YFP_NARATIVE_Q7","YFP_NARATIVE_Q8","YFP_NARATIVE_Q9","YFP_NARATIVE_Q10","YFP_NARATIVE_Q11",
-    "YFP_NARATIVE_Q12","YFP_NARATIVE_Q13","YFP_NARATIVE_Q14","YFP_NARATIVE_Q15","YFP_NARATIVE_Q16",
-    "YFP_NARATIVE_Q17","YFP_NARATIVE_Q18","YFP_NARATIVE_Q19","YFP_NARATIVE_Q20","YFP_NARATIVE_Q21",
-    "YFP_NARATIVE_Q22","YFP_NARATIVE_Q23","YFP_NARATIVE_Q24","YFP_NARATIVE_Q25",
-    "RetailVerticalThread","HealthcareVeritcalThread","FoodVerticalThread",
-    "TechnologyVerticalThread","EducationVerticalThread"
-  ],
-  seedMissingFromEnv: true, // writes any present envs to SSM if missing (no overwrite)
-});
+// // 🔽 run the bootstrap FIRST
+// await initEnvFromSSM({
+//   prefix: process.env.SSM_PREFIX || "/yfp-backend",
+//   // optional: restrict to only the names you care about; omit to load all under the prefix
+//   keys: [
+//     "OPENAI_API_KEY",
+//     "LegalAssistantThread","MarketingAssistantThread","MarketresearchAssistantThread",
+//     "PUPPETEER_CACHE_DIR","ProductAssistantThread","SalesAssistantThread","YFP_NARATIVE_COMPILER",
+//     "YFP_NARATIVE_Q1","YFP_NARATIVE_Q3","YFP_NARATIVE_Q4","YFP_NARATIVE_Q5","YFP_NARATIVE_Q6",
+//     "YFP_NARATIVE_Q7","YFP_NARATIVE_Q8","YFP_NARATIVE_Q9","YFP_NARATIVE_Q10","YFP_NARATIVE_Q11",
+//     "YFP_NARATIVE_Q12","YFP_NARATIVE_Q13","YFP_NARATIVE_Q14","YFP_NARATIVE_Q15","YFP_NARATIVE_Q16",
+//     "YFP_NARATIVE_Q17","YFP_NARATIVE_Q18","YFP_NARATIVE_Q19","YFP_NARATIVE_Q20","YFP_NARATIVE_Q21",
+//     "YFP_NARATIVE_Q22","YFP_NARATIVE_Q23","YFP_NARATIVE_Q24","YFP_NARATIVE_Q25",
+//     "RetailVerticalThread","HealthcareVeritcalThread","FoodVerticalThread",
+//     "TechnologyVerticalThread","EducationVerticalThread"
+//   ],
+//   seedMissingFromEnv: true, // writes any present envs to SSM if missing (no overwrite)
+// });
+
+
+
+ import { initEnvFromSSM } from "./ssm-env.mjs";
+ 
+ // Only attempt SSM if you explicitly enable it.
+ if (process.env.USE_AWS_SSM === "true") {
+   try {
+     await initEnvFromSSM({
+       prefix: process.env.SSM_PREFIX || "/yfp-backend",
+       keys: [ /* ...same keys you already have... */ ],
+       seedMissingFromEnv: true,
+     });
+   } catch (e) {
+     console.warn("SSM bootstrap skipped (no creds or not needed on Render):", e?.message || e);
+   }
+ } else {
+   console.log("SSM bootstrap disabled (USE_AWS_SSM!=true). Using Render env vars.");
+ }
 
 const app = express();
 app.use(cors({ origin: "*" }));
@@ -3035,10 +3054,17 @@ export async function createPdfFromSections(sections) {
 
 
 
+  // const browser = await puppeteer.launch({
+  //   headless: true,
+  //   args: ['--no-sandbox', '--disable-setuid-sandbox']
+  // });
+
   const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  headless: true,
+   args: ['--no-sandbox', '--disable-setuid-sandbox'],
+   userDataDir: process.env.PUPPETEER_CACHE_DIR || '/tmp/puppeteer'
+ });
+
 
   const page = await browser.newPage();
 
@@ -3078,7 +3104,10 @@ export async function createPdfFromSections(sections) {
 
 
 
-fs.writeFileSync('debug_output.html', fullHTML);
+  const tmpDir = "/tmp";
+ const debugHtmlPath = path.join(tmpDir, "debug_output.html");
+ fs.writeFileSync(debugHtmlPath, fullHTML);
+// fs.writeFileSync('debug_output.html', fullHTML);
 
 // let root = parse(fullHTML);
 
@@ -3088,7 +3117,10 @@ fs.writeFileSync('debug_output.html', fullHTML);
 // }
 
   // await page.setContent(fullHTML, { waitUntil: 'networkidle0' });
+  // await page.setContent(fullHTML, { waitUntil: 'domcontentloaded' });
+
   await page.setContent(fullHTML, { waitUntil: 'domcontentloaded' });
+
 
 
   let pdfBuffer = await page.pdf({
@@ -3107,11 +3139,22 @@ fs.writeFileSync('debug_output.html', fullHTML);
 
   await browser.close();
 
-  const filePath = path.resolve(__dirname, 'debug_output.pdf');
-fs.writeFileSync(filePath, pdfBuffer);
-console.log("Saved PDF to:", filePath);
 
-  return filePath;
+ const pdfPath = path.join(tmpDir, 'debug_output.pdf');
+ fs.writeFileSync(pdfPath, pdfBuffer);
+ console.log("Saved PDF to:", pdfPath);
+ return pdfPath;
+
+
+//   const filePath = path.resolve(__dirname, 'debug_output.pdf');
+// fs.writeFileSync(filePath, pdfBuffer);
+// console.log("Saved PDF to:", filePath);
+
+//   return filePath;
+
+
+
+
 
 
   // fs.writeFileSync('debug_output.pdf', pdfBuffer);
