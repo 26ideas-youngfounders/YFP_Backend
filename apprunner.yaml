@@ -1,0 +1,19 @@
+# apprunner.yaml
+version: 1.0
+runtime: nodejs20
+
+build:
+  commands:
+    - npm ci
+
+run:
+  command: node index.js
+  network:
+    port: 3000
+
+health_check:
+  path: /healthz
+  interval: 10
+  timeout: 5
+  healthy_threshold: 1
+  unhealthy_threshold: 5
